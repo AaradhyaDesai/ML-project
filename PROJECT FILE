@@ -1,0 +1,92 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+
+# Loading the dataset
+df = pd.read_csv('credit_card_approval_data.csv')
+
+
+# Data Visualization # Plot histograms for each feature
+df.hist(bins=30, figsize=(15, 10))
+plt.suptitle('Feature Distributions')
+plt.show()
+
+# Correlation heatmap. Mostly keeping this one. The data is represented in a better manner.
+plt.figure(figsize=(12, 8))
+sns.heatmap(df.corr(), annot=True, cmap='coolwarm', linewidths=0.5)
+plt.title('Correlation Heatmap')
+plt.show()
+
+
+# Preprocess data
+X = df.drop('ApprovalStatus', axis=1)
+y = df['ApprovalStatus']
+
+# Split data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Scale features
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# Build Logistic Regression model
+model = LogisticRegression(random_state=42)
+model.fit(X_train_scaled, y_train)
+
+# Predict and evaluate
+y_pred = model.predict(X_test_scaled)
+
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
+print("Classification Report:\n", classification_report(y_test, y_pred))
+
+# Function to make a prediction for a new user
+def predict_approval(age, income, credit_score, num_credit_cards, num_bank_accounts, employment_status, debt):
+    user_data = pd.DataFrame({
+        'Age': [age],
+        'Income': [income],
+        'CreditScore': [credit_score],
+        'NumCreditCards': [num_credit_cards],
+        'NumBankAccounts': [num_bank_accounts],
+        'EmploymentStatus': [employment_status],
+        'Debt': [debt]
+    })
+    user_data_scaled = scaler.transform(user_data)
+    prediction = model.predict(user_data_scaled)
+    return 'Approved' if prediction[0] == 1 else 'Denied'
+
+# Get user input
+def get_user_input():
+    try:
+        age = int(input("Enter Age: "))
+        income = float(input("Enter Income: "))
+        credit_score = int(input("Enter Credit Score: "))
+        num_credit_cards = int(input("Enter Number of Credit Cards: "))
+        num_bank_accounts = int(input("Enter Number of Bank Accounts: "))
+        employment_status = int(input("Enter Employment Status (0 for unemployed, 1 for employed): "))
+        debt = float(input("Enter Debt: "))
+    except ValueError:
+        print("Invalid input. Please enter numeric values.")
+        return None
+    
+    return {
+        'age': age,
+        'income': income,
+        'credit_score': credit_score,
+        'num_credit_cards': num_credit_cards,
+        'num_bank_accounts': num_bank_accounts,
+        'employment_status': employment_status,
+        'debt': debt
+    }
+
+# Predict based on user input
+user_details = get_user_input()
+if user_details:
+    result = predict_approval(**user_details)
+    print(f"Prediction for user with details {user_details}: {result}")
