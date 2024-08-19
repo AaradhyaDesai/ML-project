@@ -11,3 +11,7 @@ After the execution of the code, there will be a heat diagram
 and feature distribution showing the statistics of what the
 data in the data set.
 
+The user will be asked to enter their details, prediction
+will be performed on the entered inputs.
+Parameters like Age, Income, Credit Score, Number of Credit cards,
+Number of Bank Accounts, Employment Status and Debt.
